@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Sanga School Trees Census</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1B4332">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tree Census">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bark:#3E2A1E;
+    --forest-dark:#122B22;
+    --forest:#1B4332;
+    --forest-mid:#2D6A4F;
+    --sage:#9AB8A4;
+    --sage-pale:#E4ECE4;
+    --gold:#C9A227;
+    --gold-soft:#E4C765;
+    --paper:#F6F1E6;
+    --paper-card:#FFFDF7;
+    --ink:#1C2A22;
+    --ink-soft:#5B6B60;
+    --danger:#A8442A;
+    --ring-track:#E1E7DE;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    background-image:
+      radial-gradient(circle at 12% 8%, rgba(201,162,39,0.08), transparent 40%),
+      radial-gradient(circle at 88% 92%, rgba(27,67,50,0.06), transparent 45%);
+    font-family:'Source Sans 3', sans-serif;
+    color:var(--ink);
+    min-height:100vh;
+    -webkit-tap-highlight-color:transparent;
+  }
+  header.top{
+    background:linear-gradient(160deg, var(--forest-dark), var(--forest) 70%);
+    color:#F6F1E6;
+    padding:22px 18px 26px;
+    position:relative;
+    overflow:hidden;
+  }
+  header.top::after{
+    content:"";
+    position:absolute;
+    right:-40px; top:-40px;
+    width:160px; height:160px;
+    border-radius:50%;
+    background:radial-gradient(circle, rgba(201,162,39,0.18), transparent 70%);
+  }
+  .brand-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    position:relative;
+    z-index:1;
+  }
+  .crest{
+    width:52px;
+    height:52px;
+    flex-shrink:0;
+    object-fit:contain;
+    filter:drop-shadow(0 2px 4px rgba(0,0,0,0.25));
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    color:var(--gold-soft);
+    margin:0 0 4px;
+  }
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight:700;
+    font-size:26px;
+    margin:0;
+    letter-spacing:0.2px;
+  }
+  .subhead{
+    font-size:13px;
+    color:#CBDACD;
+    margin-top:4px;
+  }
+  .stats-row{
+    display:flex;
+    gap:10px;
+    margin-top:18px;
+    position:relative;
+    z-index:1;
+  }
+  .stat-chip{
+    flex:1;
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.14);
+    border-radius:10px;
+    padding:10px 8px;
+    text-align:center;
+  }
+  .stat-num{
+    font-family:'Fraunces', serif;
+    font-size:20px;
+    font-weight:600;
+    color:var(--gold-soft);
+    line-height:1;
+  }
+  .stat-label{
+    font-size:10px;
+    color:#CBDACD;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    margin-top:4px;
+  }
+  main{
+    padding:16px 14px 100px;
+    max-width:640px;
+    margin:0 auto;
+  }
+  .toolbar{
+    display:flex;
+    gap:8px;
+    margin:14px 0 16px;
+  }
+  input.search{
+    flex:1;
+    padding:11px 14px;
+    border-radius:10px;
+    border:1px solid #D9D0BB;
+    background:var(--paper-card);
+    font-size:14px;
+    color:var(--ink);
+  }
+  input.search:focus{outline:2px solid var(--forest-mid); outline-offset:1px;}
+  button.icon-btn{
+    background:var(--paper-card);
+    border:1px solid #D9D0BB;
+    border-radius:10px;
+    padding:0 14px;
+    font-size:13px;
+    color:var(--forest);
+    font-weight:600;
+  }
+  .empty-state{
+    text-align:center;
+    padding:50px 20px;
+    color:var(--ink-soft);
+  }
+  .empty-state .glyph{font-size:38px; margin-bottom:10px;}
+  .empty-state p{margin:4px 0; font-size:14px;}
+
+  .card{
+    background:var(--paper-card);
+    border:1px solid #E7E0CC;
+    border-radius:var(--radius);
+    padding:12px;
+    margin-bottom:12px;
+    box-shadow:0 1px 2px rgba(28,42,34,0.04);
+  }
+  .card-main{
+    display:flex;
+    gap:12px;
+  }
+  .thumb{
+    width:64px; height:64px;
+    border-radius:10px;
+    object-fit:cover;
+    background:var(--sage-pale);
+    flex-shrink:0;
+    border:1px solid #E1E7DE;
+  }
+  .thumb.placeholder{
+    display:flex; align-items:center; justify-content:center;
+    font-size:24px;
+  }
+  .card-body{flex:1; min-width:0;}
+  .card-top{display:flex; justify-content:space-between; align-items:flex-start; gap:8px;}
+  .tree-name{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:16px;
+    margin:0;
+    color:var(--forest-dark);
+  }
+  .tree-meta{
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-top:2px;
+  }
+  .ring-wrap{position:relative; width:44px; height:44px; flex-shrink:0;}
+  .ring-wrap svg{transform:rotate(-90deg);}
+  .ring-pct{
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'JetBrains Mono', monospace;
+    font-size:10px; font-weight:700;
+    color:var(--forest-dark);
+  }
+  .counts{
+    display:flex; gap:14px;
+    margin-top:8px;
+    font-size:12px;
+  }
+  .counts span b{color:var(--forest-dark); font-family:'JetBrains Mono', monospace;}
+  .remarks-preview{
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-top:6px;
+    font-style:italic;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .census-tag{
+    font-size:10.5px;
+    color:var(--forest-mid);
+    background:var(--sage-pale);
+    display:inline-block;
+    padding:2px 8px;
+    border-radius:20px;
+    margin-top:7px;
+    font-weight:600;
+    letter-spacing:0.3px;
+  }
+  details.census-history{
+    margin-top:10px;
+    border-top:1px solid #EEE7D2;
+    padding-top:6px;
+  }
+  details.census-history summary{
+    font-size:11.5px;
+    font-weight:600;
+    color:var(--forest);
+    cursor:pointer;
+    list-style:none;
+  }
+  details.census-history summary::-webkit-details-marker{display:none;}
+  details.census-history summary::before{content:"▸ ";}
+  details.census-history[open] summary::before{content:"▾ ";}
+  .hist-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    gap:8px;
+    font-size:11.5px;
+    color:var(--ink-soft);
+    padding:5px 0;
+    border-bottom:1px dashed #EEE7D2;
+  }
+  .hist-row:last-child{border-bottom:none;}
+  .hist-row b{color:var(--ink); font-family:'JetBrains Mono', monospace;}
+  .hist-remove{
+    background:none; border:none; padding:0;
+    font-size:10.5px; color:var(--danger); font-weight:600;
+    flex-shrink:0;
+  }
+  .hist-edit{
+    background:none; border:none; padding:0;
+    font-size:10.5px; color:var(--forest-mid); font-weight:600;
+    flex-shrink:0;
+    margin-right:8px;
+  }
+  .card-actions{
+    display:flex;
+    gap:16px;
+    margin-top:10px;
+  }
+  .card-actions button{
+    background:none; border:none; padding:0;
+    font-size:12.5px; font-weight:600;
+  }
+  .card-actions .add-census{color:var(--gold);}
+  .card-actions .edit-details{color:var(--forest-mid);}
+  .card-actions .del{color:var(--danger);}
+
+  .fab{
+    position:fixed;
+    bottom:22px; right:20px;
+    width:58px; height:58px;
+    border-radius:50%;
+    background:var(--gold);
+    color:var(--forest-dark);
+    border:none;
+    font-size:28px;
+    box-shadow:0 6px 16px rgba(201,162,39,0.45);
+    display:flex; align-items:center; justify-content:center;
+    z-index:20;
+  }
+  .fab:active{transform:scale(0.94);}
+
+  .sheet-overlay{
+    position:fixed; inset:0;
+    background:rgba(18,43,34,0.42);
+    z-index:30;
+    display:none;
+    align-items:flex-end;
+  }
+  .sheet-overlay.open{display:flex;}
+  .sheet{
+    background:var(--paper);
+    width:100%;
+    max-height:92vh;
+    overflow-y:auto;
+    border-radius:22px 22px 0 0;
+    padding:6px 18px 24px;
+    animation:slideup 0.22s ease-out;
+  }
+  @keyframes slideup{from{transform:translateY(30px); opacity:0.5;} to{transform:translateY(0); opacity:1;}}
+  .sheet-handle{
+    width:40px; height:4px;
+    background:#D9D0BB;
+    border-radius:4px;
+    margin:10px auto 14px;
+  }
+  .sheet h2{
+    font-family:'Fraunces', serif;
+    font-size:19px;
+    color:var(--forest-dark);
+    margin:0 0 14px;
+  }
+  .field{margin-bottom:14px;}
+  .field label{
+    display:block;
+    font-size:12px;
+    font-weight:600;
+    color:var(--forest);
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+    margin-bottom:6px;
+  }
+  .field input[type=text],
+  .field input[type=date],
+  .field input[type=number],
+  .field textarea,
+  .field select{
+    width:100%;
+    padding:12px 13px;
+    border-radius:10px;
+    border:1px solid #D9D0BB;
+    background:var(--paper-card);
+    font-size:15px;
+    color:var(--ink);
+    font-family:inherit;
+  }
+  .field select{appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%231B4332' stroke-width='2' fill='none'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center;}
+  .field textarea{min-height:70px; resize:vertical;}
+  .row2{display:flex; gap:10px;}
+  .row2 .field{flex:1;}
+  .row3{display:flex; gap:8px;}
+  .row3 .field{flex:1;}
+  .helper-note{
+    font-size:11px;
+    color:var(--ink-soft);
+    margin-top:-8px;
+    margin-bottom:14px;
+  }
+
+  .photo-picker{
+    display:flex; align-items:center; gap:12px;
+  }
+  .photo-preview{
+    width:72px; height:72px;
+    border-radius:12px;
+    object-fit:cover;
+    background:var(--sage-pale);
+    border:1px solid #E1E7DE;
+    flex-shrink:0;
+  }
+  .photo-preview.empty{display:flex; align-items:center; justify-content:center; font-size:26px;}
+  .photo-btn{
+    background:var(--sage-pale);
+    color:var(--forest);
+    border:1px dashed var(--forest-mid);
+    border-radius:10px;
+    padding:10px 14px;
+    font-size:13px;
+    font-weight:600;
+    flex:1;
+  }
+  input[type=file]{display:none;}
+
+  .sheet-actions{
+    display:flex; gap:10px; margin-top:6px;
+  }
+  .btn-primary{
+    flex:1;
+    background:var(--forest);
+    color:#F6F1E6;
+    border:none;
+    padding:14px;
+    border-radius:11px;
+    font-size:15px;
+    font-weight:700;
+    font-family:'Fraunces', serif;
+  }
+  .btn-primary:active{background:var(--forest-dark);}
+  .btn-secondary{
+    background:none;
+    border:1px solid #D9D0BB;
+    color:var(--ink-soft);
+    padding:14px 18px;
+    border-radius:11px;
+    font-size:14px;
+  }
+  .btn-danger{
+    background:none;
+    border:1px solid var(--danger);
+    color:var(--danger);
+    padding:14px 18px;
+    border-radius:11px;
+    font-size:14px;
+  }
+  ::selection{background:var(--gold-soft);}
+
+  .history-preview-block{
+    margin-bottom:16px;
+  }
+  .history-preview-block h3{
+    font-family:'Fraunces', serif;
+    font-size:14px;
+    color:var(--forest-dark);
+    margin:0 0 8px;
+  }
+  .history-preview-list{
+    max-height:150px;
+    overflow-y:auto;
+    border:1px solid #E7E0CC;
+    border-radius:10px;
+    padding:8px 10px;
+    background:var(--paper-card);
+  }
+  .history-preview-list .hist-row{font-size:12px;}
+  .no-history{
+    font-size:12px;
+    color:var(--ink-soft);
+    font-style:italic;
+  }
+
+  .gate-overlay{
+    position:fixed; inset:0;
+    background:linear-gradient(160deg, var(--forest-dark), var(--forest) 70%);
+    z-index:50;
+    display:none;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:30px;
+    text-align:center;
+  }
+  .gate-crest{width:64px; height:64px; margin-bottom:14px; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.3));}
+  .gate-title{
+    font-family:'Fraunces', serif;
+    font-weight:700;
+    font-size:22px;
+    color:#F6F1E6;
+    margin:0 0 4px;
+  }
+  .gate-sub{
+    font-size:13px;
+    color:#CBDACD;
+    margin-bottom:24px;
+  }
+  .gate-pin-input{
+    width:100%;
+    max-width:220px;
+    padding:14px;
+    border-radius:12px;
+    border:1px solid rgba(255,255,255,0.25);
+    background:rgba(255,255,255,0.08);
+    color:#F6F1E6;
+    font-size:22px;
+    letter-spacing:8px;
+    text-align:center;
+    font-family:'JetBrains Mono', monospace;
+    margin-bottom:14px;
+  }
+  .gate-pin-input::placeholder{color:rgba(246,241,230,0.4); letter-spacing:2px; font-size:13px;}
+  .gate-error{
+    color:#E9A08A;
+    font-size:12px;
+    min-height:16px;
+    margin-bottom:8px;
+  }
+  .gate-btn{
+    width:100%;
+    max-width:220px;
+    padding:13px;
+    border-radius:11px;
+    border:none;
+    font-size:14px;
+    font-weight:700;
+    font-family:'Fraunces', serif;
+    margin-bottom:10px;
+  }
+  .gate-btn.primary{background:var(--gold); color:var(--forest-dark);}
+  .gate-btn.secondary{background:rgba(255,255,255,0.1); color:#F6F1E6; border:1px solid rgba(255,255,255,0.25);}
+
+  .role-badge{
+    font-size:11px;
+    color:#CBDACD;
+    margin-top:4px;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+  }
+  .role-badge button{
+    background:none;
+    border:1px solid rgba(255,255,255,0.3);
+    color:#E4C765;
+    font-size:10px;
+    padding:2px 8px;
+    border-radius:20px;
+    font-weight:600;
+  }
+  .viewer-hidden{display:none !important;}
+</style>
+</head>
+<body>
+
+<div class="gate-overlay" id="gateOverlay">
+  <img class="gate-crest" src="" id="gateCrest" alt="">
+  <p class="gate-title">Sang'a Trees Census</p>
+  <p class="gate-sub">Enter the Admin PIN to add or edit entries,<br>or continue as a read-only viewer.</p>
+  <input class="gate-pin-input" id="gatePinInput" type="password" inputmode="numeric" maxlength="6" placeholder="PIN">
+  <div class="gate-error" id="gateError"></div>
+  <button class="gate-btn primary" id="gateUnlockBtn">Unlock Admin</button>
+  <button class="gate-btn secondary" id="gateViewerBtn">Continue as Viewer</button>
+</div>
+
+<header class="top">
+  <div class="brand-row">
+    <img class="crest" src="icon-192.png" alt="Sang'a Comprehensive School crest">
+    <div>
+      <p class="eyebrow">Sang'a Comprehensive School</p>
+      <h1>Trees Census App</h1>
+    </div>
+  </div>
+  <div class="subhead" id="syncStatus">Connecting…</div>
+  <div class="role-badge" id="roleBadge"></div>
+  <div class="stats-row">
+    <div class="stat-chip">
+      <div class="stat-num" id="statPlanted">0</div>
+      <div class="stat-label">Planted</div>
+    </div>
+    <div class="stat-chip">
+      <div class="stat-num" id="statSurviving">0</div>
+      <div class="stat-label">Surviving</div>
+    </div>
+    <div class="stat-chip">
+      <div class="stat-num" id="statRate">0%</div>
+      <div class="stat-label">Survival Rate</div>
+    </div>
+    <div class="stat-chip">
+      <div class="stat-num" id="statVarieties">0</div>
+      <div class="stat-label">Varieties</div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="toolbar">
+    <input class="search" id="searchBox" type="text" placeholder="Search by tree name or remarks…">
+  </div>
+  <div class="toolbar" style="margin-top:-8px;">
+    <button class="icon-btn" id="exportBtn" style="flex:1;">Export CSV</button>
+    <button class="icon-btn" id="pdfBtn" style="flex:1;">Download / Share PDF</button>
+  </div>
+
+  <div id="listWrap"></div>
+</main>
+
+<button class="fab viewer-hidden" id="addBtn" aria-label="Add tree">+</button>
+
+<!-- Core tree details sheet: New tree, or Edit details of an existing tree -->
+<div class="sheet-overlay" id="sheetOverlay">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <h2 id="sheetTitle">New Tree</h2>
+
+    <div class="field">
+      <label>Tree Image</label>
+      <div class="photo-picker">
+        <img id="photoPreview" class="photo-preview empty" alt="">
+        <button type="button" class="photo-btn" id="photoBtn">Take / Choose Photo</button>
+        <input type="file" id="photoInput" accept="image/*">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Name of Tree</label>
+      <input type="text" id="fName" list="treeSpecies" placeholder="e.g. Grevillea, Podo, Meru Oak">
+      <datalist id="treeSpecies">
+        <option value="Grevillea">
+        <option value="Podo (Podocarpus)">
+        <option value="Meru Oak">
+        <option value="Cape Chestnut">
+        <option value="Croton">
+        <option value="Muhugu">
+        <option value="Acacia">
+        <option value="Eucalyptus">
+        <option value="Bamboo">
+        <option value="Cedar">
+      </datalist>
+    </div>
+
+    <div class="field">
+      <label>Donated / Planted By</label>
+      <input type="text" id="fDonatedBy" placeholder="e.g. Grade 7 Green Club, Lewa Conservancy, John Doe">
+    </div>
+
+    <div class="field">
+      <label>Date Planted</label>
+      <input type="date" id="fDatePlanted">
+    </div>
+
+    <div class="sheet-actions">
+      <button class="btn-secondary" id="cancelBtn">Cancel</button>
+      <button class="btn-danger" id="deleteBtn" style="display:none;">Delete Tree</button>
+      <button class="btn-primary" id="saveBtn">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Census entries sheet: shows past census history + form to add a new one, without touching the past -->
+<div class="sheet-overlay" id="censusOverlay">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <h2 id="censusSheetTitle">Census Entries</h2>
+
+    <div class="history-preview-block">
+      <h3>Past census records</h3>
+      <div class="history-preview-list" id="historyPreviewList"></div>
+    </div>
+
+    <div id="censusFormWrap">
+      <div class="row2">
+        <div class="field">
+          <label>No. of Trees Planted</label>
+          <input type="number" id="fPlanted" inputmode="numeric" min="0" placeholder="0">
+        </div>
+        <div class="field">
+          <label>No. of Trees Surviving</label>
+          <input type="number" id="fSurviving" inputmode="numeric" min="0" placeholder="0">
+        </div>
+      </div>
+
+      <label style="display:block; font-size:12px; font-weight:600; color:var(--forest); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">Date of Census</label>
+      <div class="row3">
+        <div class="field">
+          <select id="fMonth">
+            <option value="">Month</option>
+          </select>
+        </div>
+        <div class="field">
+          <select id="fYear">
+            <option value="">Year</option>
+          </select>
+        </div>
+        <div class="field">
+          <select id="fTerm">
+            <option value="">Term</option>
+            <option value="Term 1">Term 1</option>
+            <option value="Term 2">Term 2</option>
+            <option value="Term 3">Term 3</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Remarks</label>
+        <textarea id="fRemarks" placeholder="Condition, location notes, pests, watering needs…"></textarea>
+      </div>
+      <div class="helper-note">Saving adds a new census record — earlier records above are kept, not overwritten.</div>
+    </div>
+
+    <div class="sheet-actions">
+      <button class="btn-secondary" id="censusCancelBtn">Close</button>
+      <button class="btn-primary" id="censusSaveBtn">Save New Census</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getFirestore, collection, doc, setDoc, updateDoc, deleteDoc, deleteField, onSnapshot, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  getAuth, signInAnonymously, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDUCjauAvmqxEtetQU-I1WgedRj-BddsJA",
+  authDomain: "tree-census-28f26.firebaseapp.com",
+  projectId: "tree-census-28f26",
+  storageBucket: "tree-census-28f26.firebasestorage.app",
+  messagingSenderId: "1062552941888",
+  appId: "1:1062552941888:web:ede221bb39e8735ad2b6a5"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const db = getFirestore(fbApp);
+const auth = getAuth(fbApp);
+const entriesCol = collection(db, 'tree_census_entries');
+
+let entries = [];
+let editingId = null;      // for core-details sheet
+let censusEntryId = null;  // for census sheet
+let censusEditId = null;   // set when editing a specific past census entry, null when adding a new one
+let pendingPhoto = null;
+
+const ADMIN_PIN = '1234';
+let role = localStorage.getItem('tc_role') || null; // 'admin' | 'viewer' | null
+
+// ---------- Census history helpers ----------
+// Normalizes an entry's census data into an array, synthesizing one
+// from legacy top-level fields (planted/surviving/censusMonth/...) if
+// no censusHistory array exists yet. This is read-only in memory —
+// the actual migration into Firestore happens the first time a new
+// census is saved for that tree (see saveCensus()).
+function getHistory(e){
+  if(Array.isArray(e.censusHistory) && e.censusHistory.length){
+    return e.censusHistory.slice().sort((a,b)=> (b.createdAt||0) - (a.createdAt||0));
+  }
+  if(e.planted !== undefined && e.planted !== null && e.planted !== ''){
+    return [{
+      id: 'legacy',
+      planted: e.planted,
+      surviving: e.surviving,
+      month: e.censusMonth || '',
+      year: e.censusYear || '',
+      term: e.censusTerm || '',
+      remarks: e.remarks || '',
+      createdAt: e.createdAt || 0
+    }];
+  }
+  return [];
+}
+function latestCensus(e){
+  const hist = getHistory(e);
+  return hist.length ? hist[0] : { planted: 0, surviving: 0, month:'', year:'', term:'', remarks:'' };
+}
+
+function updateRoleUI(){
+  const badge = document.getElementById('roleBadge');
+  const addBtn = document.getElementById('addBtn');
+  if(role === 'admin'){
+    badge.innerHTML = 'Admin mode <button id="roleSwitchBtn">Switch</button>';
+    addBtn.classList.remove('viewer-hidden');
+  } else {
+    badge.innerHTML = 'Viewer (read-only) <button id="roleSwitchBtn">Admin login</button>';
+    addBtn.classList.add('viewer-hidden');
+  }
+  document.getElementById('roleSwitchBtn').addEventListener('click', openGate);
+  renderList();
+}
+
+function openGate(){
+  document.getElementById('gatePinInput').value = '';
+  document.getElementById('gateError').textContent = '';
+  const crestSrc = document.querySelector('.crest')?.src || '';
+  document.getElementById('gateCrest').src = crestSrc;
+  document.getElementById('gateOverlay').style.display = 'flex';
+}
+function closeGate(){
+  document.getElementById('gateOverlay').style.display = 'none';
+}
+
+document.getElementById('gateUnlockBtn').addEventListener('click', ()=>{
+  const pin = document.getElementById('gatePinInput').value.trim();
+  if(pin === ADMIN_PIN){
+    role = 'admin';
+    localStorage.setItem('tc_role', 'admin');
+    updateRoleUI();
+    closeGate();
+  } else {
+    document.getElementById('gateError').textContent = 'Incorrect PIN. Try again.';
+  }
+});
+document.getElementById('gateViewerBtn').addEventListener('click', ()=>{
+  role = 'viewer';
+  localStorage.setItem('tc_role', 'viewer');
+  updateRoleUI();
+  closeGate();
+});
+document.getElementById('gatePinInput').addEventListener('keydown', (ev)=>{
+  if(ev.key === 'Enter') document.getElementById('gateUnlockBtn').click();
+});
+
+function setSyncStatus(text, ok){
+  const el = document.getElementById('syncStatus');
+  if(!el) return;
+  el.textContent = text;
+  el.style.color = ok ? '#CBDACD' : '#E4C765';
+}
+
+function startSync(){
+  onAuthStateChanged(auth, (user)=>{
+    if(!user) return;
+    setSyncStatus('Live sync connected', true);
+    onSnapshot(entriesCol, (snapshot)=>{
+      entries = snapshot.docs.map(d=>({ id: d.id, ...d.data() }));
+      renderAll();
+    }, (err)=>{
+      console.error('Sync error', err);
+      setSyncStatus('Sync error — check connection', false);
+    });
+  });
+  signInAnonymously(auth).catch(err=>{
+    console.error('Auth error', err);
+    setSyncStatus('Could not connect to sync', false);
+  });
+}
+
+// populate month/year selects
+const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const monthSel = document.getElementById('fMonth');
+months.forEach(m=>{
+  const o = document.createElement('option');
+  o.value = m; o.textContent = m;
+  monthSel.appendChild(o);
+});
+const yearSel = document.getElementById('fYear');
+for(let y=2024; y<=2032; y++){
+  const o = document.createElement('option');
+  o.value = y; o.textContent = y;
+  yearSel.appendChild(o);
+}
+
+function ringSVG(pct, size=44){
+  const stroke = 5;
+  const r = (size - stroke)/2;
+  const c = 2*Math.PI*r;
+  const offset = c - (pct/100)*c;
+  let color = '#2D6A4F';
+  if(pct < 40) color = '#A8442A';
+  else if(pct < 70) color = '#C9A227';
+  return `<svg width="${size}" height="${size}">
+    <circle cx="${size/2}" cy="${size/2}" r="${r}" stroke="#E1E7DE" stroke-width="${stroke}" fill="none"/>
+    <circle cx="${size/2}" cy="${size/2}" r="${r}" stroke="${color}" stroke-width="${stroke}" fill="none"
+      stroke-dasharray="${c}" stroke-dashoffset="${offset}" stroke-linecap="round"/>
+  </svg>`;
+}
+
+function fmtDate(d){
+  if(!d) return '—';
+  const dt = new Date(d + 'T00:00:00');
+  if(isNaN(dt)) return d;
+  return dt.toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'});
+}
+
+function renderStats(){
+  let planted = 0, surviving = 0;
+  const varieties = new Set();
+  entries.forEach(e=>{
+    const latest = latestCensus(e);
+    planted += Number(latest.planted)||0;
+    surviving += Number(latest.surviving)||0;
+    const speciesKey = (e.name||'').trim().toLowerCase();
+    if(speciesKey) varieties.add(speciesKey);
+  });
+  const rate = planted ? Math.round((surviving/planted)*100) : 0;
+  document.getElementById('statPlanted').textContent = planted;
+  document.getElementById('statSurviving').textContent = surviving;
+  document.getElementById('statRate').textContent = rate + '%';
+  document.getElementById('statVarieties').textContent = varieties.size;
+}
+
+function renderList(){
+  const wrap = document.getElementById('listWrap');
+  const q = document.getElementById('searchBox').value.trim().toLowerCase();
+  const isAdmin = role === 'admin';
+  let filtered = entries.filter(e=>{
+    if(!q) return true;
+    const latest = latestCensus(e);
+    return (e.name||'').toLowerCase().includes(q) || (latest.remarks||'').toLowerCase().includes(q) || (e.donatedBy||'').toLowerCase().includes(q);
+  });
+  filtered = filtered.slice().sort((a,b)=> (b.createdAt||0) - (a.createdAt||0));
+
+  if(filtered.length === 0){
+    wrap.innerHTML = `<div class="empty-state">
+      <div class="glyph">🌱</div>
+      <p><strong>No entries yet</strong></p>
+      <p>Tap the + button to log your first tree.</p>
+    </div>`;
+    return;
+  }
+
+  wrap.innerHTML = filtered.map(e=>{
+    const hist = getHistory(e);
+    const latest = hist[0] || { planted:0, surviving:0, month:'', year:'', term:'', remarks:'' };
+    const planted = Number(latest.planted)||0;
+    const surviving = Number(latest.surviving)||0;
+    const pct = planted ? Math.round((surviving/planted)*100) : 0;
+    const censusParts = [latest.month, latest.year, latest.term].filter(Boolean);
+    const censusLabel = censusParts.length ? censusParts.join(' · ') : 'No census recorded yet';
+    const thumb = e.photo
+      ? `<img class="thumb" src="${e.photo}" alt="">`
+      : `<div class="thumb placeholder">🌳</div>`;
+
+    const historyRows = hist.map(h=>{
+      const p = Number(h.planted)||0;
+      const s = Number(h.surviving)||0;
+      const r = p ? Math.round((s/p)*100) : 0;
+      const label = [h.month, h.year, h.term].filter(Boolean).join(' · ') || fmtDate(h.date) || '—';
+      const canRemove = isAdmin && hist.length > 1;
+      return `<div class="hist-row">
+        <span>${escapeHtml(label)}${h.remarks ? ' — ' + escapeHtml(h.remarks) : ''}</span>
+        <span><b>${p}</b>/<b>${s}</b> (${r}%)${isAdmin ? ` <button class="hist-edit" data-entry="${e.id}" data-hist="${h.id}">edit</button>` : ''}${canRemove ? ` <button class="hist-remove" data-entry="${e.id}" data-hist="${h.id}">remove</button>` : ''}</span>
+      </div>`;
+    }).join('') || '<div class="no-history">No census recorded yet.</div>';
+
+    return `<div class="card" data-id="${e.id}">
+      <div class="card-main">
+        ${thumb}
+        <div class="card-body">
+          <div class="card-top">
+            <div>
+              <p class="tree-name">${escapeHtml(e.name || 'Unnamed tree')}</p>
+              <div class="tree-meta">Planted ${fmtDate(e.datePlanted)}</div>
+              ${e.donatedBy ? `<div class="tree-meta">By ${escapeHtml(e.donatedBy)}</div>` : ''}
+            </div>
+            <div class="ring-wrap">
+              ${ringSVG(pct)}
+              <div class="ring-pct">${pct}%</div>
+            </div>
+          </div>
+          <div class="counts">
+            <span>Planted <b>${planted}</b></span>
+            <span>Surviving <b>${surviving}</b></span>
+          </div>
+          <div class="census-tag">Latest: ${censusLabel}</div>
+        </div>
+      </div>
+      <details class="census-history">
+        <summary>Census history (${hist.length})</summary>
+        ${historyRows}
+      </details>
+      <div class="card-actions">
+        <button class="add-census" data-action="census" data-id="${e.id}">${isAdmin ? '+ Census' : 'View census'}</button>
+        ${isAdmin ? `<button class="edit-details" data-action="edit" data-id="${e.id}">Edit details</button>` : ''}
+        ${isAdmin ? `<button class="del" data-action="delete" data-id="${e.id}">Delete</button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  wrap.querySelectorAll('[data-action="census"]').forEach(btn=>{
+    btn.addEventListener('click', ()=> openCensusSheet(btn.dataset.id));
+  });
+  wrap.querySelectorAll('[data-action="edit"]').forEach(btn=>{
+    btn.addEventListener('click', ()=> openEdit(btn.dataset.id));
+  });
+  wrap.querySelectorAll('[data-action="delete"]').forEach(btn=>{
+    btn.addEventListener('click', ()=> deleteTree(btn.dataset.id));
+  });
+  wrap.querySelectorAll('.hist-remove').forEach(btn=>{
+    btn.addEventListener('click', (ev)=>{
+      ev.stopPropagation();
+      removeCensusEntry(btn.dataset.entry, btn.dataset.hist);
+    });
+  });
+  wrap.querySelectorAll('.hist-edit').forEach(btn=>{
+    btn.addEventListener('click', (ev)=>{
+      ev.stopPropagation();
+      openCensusSheet(btn.dataset.entry, btn.dataset.hist);
+    });
+  });
+}
+
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str == null ? '' : str;
+  return d.innerHTML;
+}
+
+function renderAll(){
+  renderStats();
+  renderList();
+}
+
+// ---------- Core details sheet (New tree / Edit details) ----------
+function resetForm(){
+  editingId = null;
+  pendingPhoto = null;
+  document.getElementById('sheetTitle').textContent = 'New Tree';
+  document.getElementById('photoPreview').src = '';
+  document.getElementById('photoPreview').className = 'photo-preview empty';
+  document.getElementById('fName').value = '';
+  document.getElementById('fDonatedBy').value = '';
+  document.getElementById('fDatePlanted').value = '';
+  document.getElementById('deleteBtn').style.display = 'none';
+}
+
+function openSheet(){ document.getElementById('sheetOverlay').classList.add('open'); }
+function closeSheet(){ document.getElementById('sheetOverlay').classList.remove('open'); }
+
+function openEdit(id){
+  const e = entries.find(x=>x.id === id);
+  if(!e) return;
+  editingId = id;
+  pendingPhoto = e.photo || null;
+  document.getElementById('sheetTitle').textContent = 'Edit Tree Details';
+  const preview = document.getElementById('photoPreview');
+  if(e.photo){
+    preview.src = e.photo;
+    preview.className = 'photo-preview';
+  } else {
+    preview.className = 'photo-preview empty';
+  }
+  document.getElementById('fName').value = e.name || '';
+  document.getElementById('fDonatedBy').value = e.donatedBy || '';
+  document.getElementById('fDatePlanted').value = e.datePlanted || '';
+  document.getElementById('deleteBtn').style.display = 'block';
+  openSheet();
+}
+
+document.getElementById('addBtn').addEventListener('click', ()=>{
+  resetForm();
+  openSheet();
+});
+document.getElementById('cancelBtn').addEventListener('click', closeSheet);
+document.getElementById('sheetOverlay').addEventListener('click', (ev)=>{
+  if(ev.target.id === 'sheetOverlay') closeSheet();
+});
+
+document.getElementById('photoBtn').addEventListener('click', ()=>{
+  document.getElementById('photoInput').click();
+});
+
+document.getElementById('photoInput').addEventListener('change', (ev)=>{
+  const file = ev.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    const img = new Image();
+    img.onload = function(){
+      const maxW = 480;
+      const scale = Math.min(1, maxW / img.width);
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width * scale;
+      canvas.height = img.height * scale;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+      pendingPhoto = dataUrl;
+      const preview = document.getElementById('photoPreview');
+      preview.src = dataUrl;
+      preview.className = 'photo-preview';
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+document.getElementById('saveBtn').addEventListener('click', async ()=>{
+  const name = document.getElementById('fName').value.trim();
+  if(!name){
+    document.getElementById('fName').focus();
+    return;
+  }
+  if(pendingPhoto && pendingPhoto.length > 850000){
+    alert('That photo is too large to sync. Please choose a smaller/lower-resolution photo.');
+    return;
+  }
+  const saveBtn = document.getElementById('saveBtn');
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Saving…';
+  const data = {
+    name,
+    donatedBy: document.getElementById('fDonatedBy').value.trim(),
+    photo: pendingPhoto,
+    datePlanted: document.getElementById('fDatePlanted').value,
+    updatedAt: serverTimestamp(),
+  };
+  try{
+    if(editingId){
+      // Editing core tree details only — census history is untouched.
+      await setDoc(doc(db, 'tree_census_entries', editingId), data, { merge: true });
+      closeSheet();
+    } else {
+      const ref = doc(entriesCol);
+      await setDoc(ref, {...data, createdAt: Date.now(), censusHistory: []});
+      closeSheet();
+      // Immediately prompt for the first census so nothing is missed.
+      openCensusSheet(ref.id);
+    }
+  }catch(err){
+    console.error('Save failed', err);
+    alert('Could not save — check your internet connection and try again.');
+  }finally{
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Save';
+  }
+});
+
+async function deleteTree(id){
+  if(!confirm('Delete this tree and its entire census history? This cannot be undone.')) return;
+  try{
+    await deleteDoc(doc(db, 'tree_census_entries', id));
+  }catch(err){
+    console.error('Delete failed', err);
+    alert('Could not delete — check your internet connection and try again.');
+  }
+}
+document.getElementById('deleteBtn').addEventListener('click', ()=>{
+  if(editingId){
+    closeSheet();
+    deleteTree(editingId);
+  }
+});
+
+// ---------- Census sheet (view history + add a new one, or edit one in place) ----------
+// Pass editHistId to open the sheet pre-filled for editing that specific
+// past record instead of adding a new one.
+function openCensusSheet(id, editHistId){
+  const e = entries.find(x=>x.id === id);
+  if(!e) return;
+  censusEntryId = id;
+  censusEditId = editHistId || null;
+  const isAdmin = role === 'admin';
+  const hist = getHistory(e);
+
+  document.getElementById('censusSheetTitle').textContent = censusEditId
+    ? `Edit Census — ${e.name || 'Unnamed tree'}`
+    : `Census — ${e.name || 'Unnamed tree'}`;
+
+  const listEl = document.getElementById('historyPreviewList');
+  listEl.innerHTML = hist.length ? hist.map(h=>{
+    const p = Number(h.planted)||0;
+    const s = Number(h.surviving)||0;
+    const r = p ? Math.round((s/p)*100) : 0;
+    const label = [h.month, h.year, h.term].filter(Boolean).join(' · ') || '—';
+    const canRemove = isAdmin && hist.length > 1;
+    return `<div class="hist-row">
+      <span>${escapeHtml(label)}${h.remarks ? ' — ' + escapeHtml(h.remarks) : ''}</span>
+      <span><b>${p}</b>/<b>${s}</b> (${r}%)${isAdmin ? ` <button class="hist-edit" data-hist="${h.id}">edit</button>` : ''}${canRemove ? ` <button class="hist-remove" data-hist="${h.id}">remove</button>` : ''}</span>
+    </div>`;
+  }).join('') : '<div class="no-history">No census recorded yet — log the first one below.</div>';
+
+  listEl.querySelectorAll('.hist-edit').forEach(btn=>{
+    btn.addEventListener('click', ()=> openCensusSheet(id, btn.dataset.hist));
+  });
+  listEl.querySelectorAll('.hist-remove').forEach(btn=>{
+    btn.addEventListener('click', ()=> removeCensusEntry(id, btn.dataset.hist));
+  });
+
+  const formWrap = document.getElementById('censusFormWrap');
+  const saveBtn = document.getElementById('censusSaveBtn');
+  formWrap.style.display = isAdmin ? 'block' : 'none';
+  saveBtn.style.display = isAdmin ? 'block' : 'none';
+  saveBtn.textContent = censusEditId ? 'Update This Record' : 'Save New Census';
+
+  if(censusEditId){
+    const editing = hist.find(h=>h.id === censusEditId);
+    document.getElementById('fPlanted').value = editing ? editing.planted : '';
+    document.getElementById('fSurviving').value = editing ? editing.surviving : '';
+    document.getElementById('fMonth').value = editing ? editing.month||'' : '';
+    document.getElementById('fYear').value = editing ? editing.year||'' : '';
+    document.getElementById('fTerm').value = editing ? editing.term||'' : '';
+    document.getElementById('fRemarks').value = editing ? editing.remarks||'' : '';
+  } else {
+    document.getElementById('fPlanted').value = hist.length ? hist[0].planted : '';
+    document.getElementById('fSurviving').value = '';
+    document.getElementById('fMonth').value = '';
+    document.getElementById('fYear').value = '';
+    document.getElementById('fTerm').value = '';
+    document.getElementById('fRemarks').value = '';
+  }
+
+  document.getElementById('censusOverlay').classList.add('open');
+}
+function closeCensusSheet(){
+  document.getElementById('censusOverlay').classList.remove('open');
+  censusEntryId = null;
+  censusEditId = null;
+}
+document.getElementById('censusCancelBtn').addEventListener('click', closeCensusSheet);
+document.getElementById('censusOverlay').addEventListener('click', (ev)=>{
+  if(ev.target.id === 'censusOverlay') closeCensusSheet();
+});
+
+document.getElementById('censusSaveBtn').addEventListener('click', async ()=>{
+  if(!censusEntryId) return;
+  const e = entries.find(x=>x.id === censusEntryId);
+  if(!e) return;
+
+  const planted = Number(document.getElementById('fPlanted').value)||0;
+  const surviving = Number(document.getElementById('fSurviving').value)||0;
+  if(surviving > planted){
+    alert("Surviving count can't exceed planted count.");
+    return;
+  }
+
+  // Preserve any past census data: if this tree still has legacy
+  // top-level fields (planted/surviving/censusMonth/...) instead of a
+  // censusHistory array, fold them into the array first so nothing is
+  // lost.
+  const migratedHistory = (Array.isArray(e.censusHistory) && e.censusHistory.length)
+    ? e.censusHistory.slice()
+    : getHistory(e); // synthesizes legacy into array form if present, else []
+
+  let updatedHistory;
+  if(censusEditId){
+    // Update the matching record in place — every other record is untouched.
+    updatedHistory = migratedHistory.map(h => h.id === censusEditId ? {
+      ...h,
+      planted,
+      surviving,
+      month: document.getElementById('fMonth').value,
+      year: document.getElementById('fYear').value,
+      term: document.getElementById('fTerm').value,
+      remarks: document.getElementById('fRemarks').value.trim()
+    } : h);
+  } else {
+    const newEntry = {
+      id: 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2,6),
+      planted,
+      surviving,
+      month: document.getElementById('fMonth').value,
+      year: document.getElementById('fYear').value,
+      term: document.getElementById('fTerm').value,
+      remarks: document.getElementById('fRemarks').value.trim(),
+      createdAt: Date.now()
+    };
+    updatedHistory = [...migratedHistory, newEntry];
+  }
+
+  const saveBtn = document.getElementById('censusSaveBtn');
+  const wasEditing = !!censusEditId;
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Saving…';
+  try{
+    await updateDoc(doc(db, 'tree_census_entries', censusEntryId), {
+      censusHistory: updatedHistory,
+      // Clear legacy top-level fields now that they live in the array,
+      // so this tree's data model is fully migrated going forward.
+      planted: deleteField(),
+      surviving: deleteField(),
+      censusMonth: deleteField(),
+      censusYear: deleteField(),
+      censusTerm: deleteField(),
+      remarks: deleteField(),
+      updatedAt: serverTimestamp()
+    });
+    closeCensusSheet();
+  }catch(err){
+    console.error('Census save failed', err);
+    alert('Could not save the census entry — check your internet connection and try again.');
+  }finally{
+    saveBtn.disabled = false;
+    saveBtn.textContent = wasEditing ? 'Update This Record' : 'Save New Census';
+  }
+});
+
+async function removeCensusEntry(entryId, histId){
+  const e = entries.find(x=>x.id === entryId);
+  if(!e) return;
+  const hist = getHistory(e);
+  if(hist.length <= 1){
+    alert('Keep at least one census entry.');
+    return;
+  }
+  if(!confirm('Remove this single census record? Other records are kept.')) return;
+  const updatedHistory = hist.filter(h=>h.id !== histId);
+  try{
+    await updateDoc(doc(db, 'tree_census_entries', entryId), {
+      censusHistory: updatedHistory,
+      planted: deleteField(),
+      surviving: deleteField(),
+      censusMonth: deleteField(),
+      censusYear: deleteField(),
+      censusTerm: deleteField(),
+      remarks: deleteField(),
+      updatedAt: serverTimestamp()
+    });
+  }catch(err){
+    console.error('Remove failed', err);
+    alert('Could not remove that entry — check your internet connection and try again.');
+  }
+}
+
+document.getElementById('searchBox').addEventListener('input', renderList);
+
+document.getElementById('exportBtn').addEventListener('click', ()=>{
+  const headers = ['Name of Tree','Donated/Planted By','Date Planted','Census Date','No. Planted','No. Surviving','Survival Rate','Remarks'];
+  const rows = [];
+  entries.forEach(e=>{
+    const hist = getHistory(e);
+    if(hist.length === 0){
+      rows.push([e.name||'', e.donatedBy||'', e.datePlanted||'', '', '', '', '', '']);
+      return;
+    }
+    hist.slice().sort((a,b)=>(a.createdAt||0)-(b.createdAt||0)).forEach(h=>{
+      const p = Number(h.planted)||0;
+      const s = Number(h.surviving)||0;
+      const pct = p ? Math.round((s/p)*100) : 0;
+      const censusLabel = [h.month, h.year, h.term].filter(Boolean).join(' ');
+      rows.push([e.name||'', e.donatedBy||'', e.datePlanted||'', censusLabel, p, s, pct+'%', (h.remarks||'').replace(/"/g,'""')]);
+    });
+  });
+  let csv = headers.join(',') + '\n';
+  rows.forEach(r=>{
+    csv += r.map(v => `"${v}"`).join(',') + '\n';
+  });
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'sanga-tree-census-' + new Date().toISOString().slice(0,10) + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+});
+
+document.getElementById('pdfBtn').addEventListener('click', async ()=>{
+  const pdfBtn = document.getElementById('pdfBtn');
+  const originalLabel = pdfBtn.textContent;
+  pdfBtn.textContent = 'Preparing…';
+  pdfBtn.disabled = true;
+  try{
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 40;
+
+    const crestImg = document.querySelector('.crest');
+    try{
+      if(crestImg && crestImg.src){
+        doc.addImage(crestImg.src, 'PNG', margin, 30, 48, 48);
+      }
+    }catch(e){ /* skip crest if it fails to embed */ }
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.setTextColor(27, 67, 50);
+    doc.text("Sang'a Comprehensive School", margin + 60, 48);
+    doc.setFontSize(13);
+    doc.text('Trees Census Report', margin + 60, 66);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(90, 90, 90);
+    doc.text('Generated ' + new Date().toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric'}), margin + 60, 80);
+
+    let planted = 0, surviving = 0;
+    entries.forEach(e=>{
+      const latest = latestCensus(e);
+      planted += Number(latest.planted)||0;
+      surviving += Number(latest.surviving)||0;
+    });
+    const rate = planted ? Math.round((surviving/planted)*100) : 0;
+
+    doc.setFontSize(10);
+    doc.setTextColor(27, 67, 50);
+    doc.text(`Total Planted: ${planted}    Total Surviving: ${surviving}    Survival Rate: ${rate}%`, margin, 105);
+
+    const rows = [];
+    entries.slice().sort((a,b)=> (b.createdAt||0) - (a.createdAt||0)).forEach(e=>{
+      const hist = getHistory(e).slice().sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+      if(hist.length === 0){
+        rows.push([e.name||'—', e.donatedBy||'—', fmtDate(e.datePlanted), '0', '0', '0%', '—', '']);
+        return;
+      }
+      hist.forEach(h=>{
+        const p = Number(h.planted)||0;
+        const s = Number(h.surviving)||0;
+        const pct = p ? Math.round((s/p)*100) : 0;
+        const censusParts = [h.month, h.year, h.term].filter(Boolean).join(' · ');
+        rows.push([
+          e.name || '—',
+          e.donatedBy || '—',
+          fmtDate(e.datePlanted),
+          String(p),
+          String(s),
+          pct + '%',
+          censusParts || '—',
+          h.remarks || ''
+        ]);
+      });
+    });
+
+    doc.autoTable({
+      startY: 118,
+      head: [['Tree', 'Donated/Planted By', 'Date Planted', 'Planted', 'Surviving', 'Rate', 'Census', 'Remarks']],
+      body: rows,
+      styles: { fontSize: 8, cellPadding: 5, overflow: 'linebreak' },
+      headStyles: { fillColor: [27, 67, 50], textColor: 255 },
+      alternateRowStyles: { fillColor: [244, 240, 227] },
+      margin: { left: margin, right: margin },
+      columnStyles: {
+        0: { cellWidth: 65 },
+        1: { cellWidth: 75 },
+        2: { cellWidth: 55 },
+        3: { cellWidth: 35, halign: 'center' },
+        4: { cellWidth: 40, halign: 'center' },
+        5: { cellWidth: 30, halign: 'center' },
+        6: { cellWidth: 60 },
+      }
+    });
+
+    const filename = 'sanga-tree-census-' + new Date().toISOString().slice(0,10) + '.pdf';
+    const pdfBlob = doc.output('blob');
+    const pdfFile = new File([pdfBlob], filename, { type: 'application/pdf' });
+
+    if(navigator.canShare && navigator.canShare({ files: [pdfFile] })){
+      await navigator.share({
+        files: [pdfFile],
+        title: 'Sanga Tree Census Report',
+        text: 'Sang\'a Comprehensive School — Trees Census Report'
+      });
+    } else {
+      const url = URL.createObjectURL(pdfBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+  }catch(err){
+    console.error('PDF generation failed', err);
+    alert('Could not generate the PDF. Please try again.');
+  }finally{
+    pdfBtn.textContent = originalLabel;
+    pdfBtn.disabled = false;
+  }
+});
+
+startSync();
+renderAll();
+updateRoleUI();
+if(!role){
+  openGate();
+} else {
+  const crestSrc = document.querySelector('.crest')?.src || '';
+  document.getElementById('gateCrest').src = crestSrc;
+}
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch((err) => {
+      console.warn('Service worker registration failed', err);
+    });
+  });
+}
+</script>
+</body>
+</html>
